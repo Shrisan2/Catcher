@@ -33,12 +33,17 @@ export default class App extends React.Component{
 
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      this.setState({
-        errorMessage: 'Permission to access location was denied'
-      });
+      Alert.alert("Error","Location Permission Required.")
+      return(
+      <View style={styles.container}>
+          <Text color="red">Error. Location Permission required. Please to to mobile settings and 
+          enable Location for Catcher.
+          </Text>
+      </View>
+      )
     }
 
-    let location = await Location.getCurrentPositionAsync()
+    let location = await Location.getCurrentPositionAsync({accuracy:1})
     const region = {
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
