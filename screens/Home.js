@@ -1,9 +1,5 @@
 import React from "react";
 import {
-  StyleSheet,
-  Iconoi,
-  Button,
-  TextInput,
   Text,
   View
 } from "react-native";

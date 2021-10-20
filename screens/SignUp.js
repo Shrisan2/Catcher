@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View, Button, Image, Alert, KeyboardAvoidingView, Keyboard} from "react-native";
+import { StyleSheet, Text, TextInput, View, Button, Image,  KeyboardAvoidingView} from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import firebase from "firebase/app";
 
