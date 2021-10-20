@@ -31,10 +31,6 @@ import Login from "./screens/Login";
 import Navigation from "./screens/Navigation";
 import ForgetPassword from "./screens/ForgetPassword";
 
-//Inside screens
-import Home from "./screens/Home";
-import Account from "./screens/Account";
-
 // create our app's navigation stack
 const RootStack = createSwitchNavigator(
   {
@@ -42,9 +38,7 @@ const RootStack = createSwitchNavigator(
     Navigation: {screen: Navigation},
     Login: {screen: Login},
     SignUp: {screen: SignUp},
-    Home: {screen: Home},
     ForgetPassword: {screen: ForgetPassword},
-    Account: {screen: Account}
   },
   {
     initialRouteName: "Loading"

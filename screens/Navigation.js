@@ -42,7 +42,7 @@ export default class Navigation extends React.Component {
             <MaterialCommunityIcons name="google-maps" color={color} size={size} />
           ),
           }} /> 
-        <Tab.Screen name="Account" component={Account} options={{
+        <Tab.Screen name="Account" component={Account} options={{unmountOnBlur: 'true',
           tabBarIcon:({color,size}) => (
             <MaterialCommunityIcons name="account" color={color} size={size} />
           ),
