@@ -37,12 +37,12 @@ export default class Navigation extends React.Component {
             <MaterialCommunityIcons name="camera" color={color} size={size} />
           )
           }} />
-        <Tab.Screen name="Maps" component={Maps} options={{unmountOnBlur: 'true',
+        <Tab.Screen name="Maps" component={Maps} options={{
           tabBarIcon:({color,size}) => (
             <MaterialCommunityIcons name="google-maps" color={color} size={size} />
           ),
           }} /> 
-        <Tab.Screen name="Account" component={Account} options={{unmountOnBlur: 'true',
+        <Tab.Screen name="Account" component={Account} options={{
           tabBarIcon:({color,size}) => (
             <MaterialCommunityIcons name="account" color={color} size={size} />
           ),

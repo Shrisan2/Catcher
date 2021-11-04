@@ -4,7 +4,6 @@ import {WebView} from 'react-native-webview';
 import { createStackNavigator } from "@react-navigation/stack";
 import firebase from "firebase/app";
 
-
 const Browser =({navigation, route})=>{
   return (
     <View style={{ flex: 1 }}>
@@ -23,6 +22,8 @@ function handleSignOut(){
   firebase.auth().signOut()
   Alert.alert("Message","Signout Successful.")
 }
+
+
 
 const Account=({navigation})=>{
   return(

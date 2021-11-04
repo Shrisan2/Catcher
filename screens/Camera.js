@@ -6,27 +6,35 @@ import {FontAwesome} from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { useFocusEffect } from '@react-navigation/native';
-import { NavigationEvents } from 'react-navigation';
 import * as MediaLibrary from 'expo-media-library';
-
+import { DataTable } from 'react-native-paper';
 
 //Importing firebase
 import firebase from "firebase/app";
+
 
 //Importing Navigation
 import { NavigationContainer, useIsFocused } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+//Importing ImageRecognition
+import ImageRecognition from './ImageRecognition';
+
+
 //Displaying the Image
 function GalleryScreen(props){
+  //Performing Image Classification
+  const classifyImage = async()=>{
+    const {uri} = {uri:props.route.params.uri};
+    const fishNames = await ImageRecognition.getFishNames(uri);
+    //redirecting to a different screen
+    props.navigation.navigate('DisplayClassification',{uri:uri, names:fishNames})
+  }
 
   const saveImage= async()=>{
     //checkDirectoryExists();
     const imageDir = FileSystem.cacheDirectory+'CatcherImages/';
-
     const {status} = await MediaLibrary.requestPermissionsAsync();
-
     if(status === 'granted'){
       const {uri} = {uri:props.route.params.uri};
       const assert =await MediaLibrary.createAssetAsync(uri);
@@ -36,14 +44,13 @@ function GalleryScreen(props){
     }else{
       Alert.alert("Error","Please go to settings and allow permission for camera.")
     }
-   
-
   }
 
   return(
     <View style={styles.container}>
       <View style={{flex:0, flexDirection:'row', justifyContent:'space-between'}}>
       <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
+      <Button title="Classify Image" onPress={()=>classifyImage()}/>
       <Button title="Save Photo" onPress={() => saveImage()} />
       </View>
       <Image style={{width:'100%', height:'100%'}} source={{uri:props.route.params.uri}} /> 
@@ -52,6 +59,54 @@ function GalleryScreen(props){
   )
 }
 
+function ClassificationScreen(props){
+  const fishNames = props.route.params.names;
+
+  const saveImage= async()=>{
+    //checkDirectoryExists();
+    const imageDir = FileSystem.cacheDirectory+'CatcherImages/';
+    const {status} = await MediaLibrary.requestPermissionsAsync();
+    if(status === 'granted'){
+      const {uri} = {uri:props.route.params.uri};
+      const assert =await MediaLibrary.createAssetAsync(uri);
+      MediaLibrary.createAlbumAsync('CatcherImages', assert);
+      Alert.alert('Success',"Image has been saved");
+      props.navigation.replace('CameraDisplay');
+    }else{
+      Alert.alert("Error","Please go to settings and allow permission for camera.")
+    }
+  }
+
+  return(
+    <View style={styles.container}>
+      <View style={{flex:0, flexDirection:'row', justifyContent:'space-between'}}>
+       <Button title="Go To Camera" onPress={() => props.navigation.replace('CameraDisplay')} />
+       <Button title="Save Photo" onPress={() => saveImage()} />
+      </View>
+      <Image style={{width:'100%', height:'50%'}} source={{uri:props.route.params.uri}}/>
+     <View style={{marginTop:30}}>
+       <DataTable>
+            <DataTable.Header >
+              <DataTable.Title>Name</DataTable.Title>
+              <DataTable.Title>Percentage</DataTable.Title>
+            </DataTable.Header>
+        </DataTable>
+     </View>
+      {fishNames.map((names,i)=>(
+          <View key={i} >
+           <DataTable>
+            <DataTable.Row>
+              <DataTable.Cell>{names.class_id}</DataTable.Cell>
+              <DataTable.Cell>{names.percentage} %</DataTable.Cell>
+              </DataTable.Row>
+            </DataTable>
+          </View>
+      )
+      )
+      }
+    </View>
+  )
+}
 
 function CameraComponent(props)  {
   const [hasGalleryPermission, setHasGalleryPermission] = useState(null);
@@ -63,11 +118,7 @@ function CameraComponent(props)  {
   const [capturedImage, setCapturedImage] = useState(null)
   const [flashMode, setFlashMode] = React.useState('off')
 
-  //Handle unmount
-  useEffect(() => {
-    let isMounted = true;               
-    return () => { isMounted = false }; 
-  }, []); 
+
 
   useEffect(() => {
     (async () => {
@@ -165,8 +216,9 @@ const Stack = createStackNavigator();
 export default function App(){
   return(
       <Stack.Navigator screenOptions={{headerShown:false}}>
-        <Stack.Screen name="CameraDisplay" component={CameraComponent}/>
+        <Stack.Screen name="CameraDisplay" component={CameraComponent} />
         <Stack.Screen  name="Gallery" component={GalleryScreen} />
+        <Stack.Screen name="DisplayClassification" component={ClassificationScreen}  />
       </Stack.Navigator>
   )
 }
