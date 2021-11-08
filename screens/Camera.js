@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image,Button,Platform,Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, Button, Platform,
+  Dimensions, FlatList, SafeAreaView, ScrollView, StatusBar, TextInput, KeyboardAvoidingView} from 'react-native';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import {FontAwesome} from '@expo/vector-icons';
@@ -8,10 +9,11 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { DataTable } from 'react-native-paper';
+import { Asset } from 'expo-asset';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 //Importing firebase
 import firebase from "firebase/app";
-
 
 //Importing Navigation
 import { NavigationContainer, useIsFocused } from "@react-navigation/native";
@@ -20,15 +22,67 @@ import { createStackNavigator } from "@react-navigation/stack";
 //Importing ImageRecognition
 import ImageRecognition from './ImageRecognition';
 
+const SpeciesButton = ({ item, onPress, backgroundColor, textColor }) => (
+  <TouchableOpacity onPress={onPress} style={[styles.speciesButton, backgroundColor]}>
+    <Text style={[styles.logItemLabel, textColor]}>{item.class_id}</Text>
+    <Text style={[styles.logItemLabel, textColor]}>{item.percentage}%</Text>
+  </TouchableOpacity>
+);
 
-//Displaying the Image
+//Displaying the Image, species prediction, and log
 function GalleryScreen(props){
+  const [predictionReady, setPredReady] = useState(false);
+  const [predictionResults, setPredictionResults] = useState(null);
+  const [smallImage, setSmallImage] = useState(null);
+  const [imgReady, setImgReady] = useState(false);
+  
+  const [selectedId, setSelectedId] = useState(null);
+  const [otherSpeciesId, setOtherSpeciesId] = useState(null);
+
+  const [currentDate, setCurrentDate] = useState('');
+  const [currentTime, setCurrentTime] = useState('');
+
+  // Initialize some things when opening this screen
+  useEffect(() => {
+    var date = new Date().getDate(); //Current Date
+    var month = new Date().getMonth() + 1; //Current Month
+    var year = new Date().getFullYear(); //Current Year
+    var hours = new Date().getHours(); //Current Hours
+    var min = new Date().getMinutes(); //Current Minutes
+    var sec = new Date().getSeconds(); //Current Seconds
+    setCurrentDate(
+      date + '/' + month + '/' + year
+    );
+    setCurrentTime(
+      hours + ':' + min + ':' + sec
+    );
+
+    // Resize a copy of image for prediction
+    (async () => {
+      const manipImage = await manipulateAsync(
+        props.route.params.uri,
+        [
+          {resize: { height: 224, width: 224 }},
+        ],
+        { compress: 1, format: SaveFormat.JPEG }
+      );
+      setSmallImage(manipImage);
+      setImgReady(true);
+      
+      // Predict
+      const {uri} = {uri:manipImage.localUri || manipImage.uri};
+      const fishNames = await ImageRecognition.getFishNames(uri);
+      setPredReady(true);
+      setPredictionResults(fishNames);
+    })();
+  }, []);
+
   //Performing Image Classification
   const classifyImage = async()=>{
     const {uri} = {uri:props.route.params.uri};
     const fishNames = await ImageRecognition.getFishNames(uri);
     //redirecting to a different screen
-    props.navigation.navigate('DisplayClassification',{uri:uri, names:fishNames})
+    //props.navigation.navigate('DisplayClassification',{uri:uri, names:fishNames})
   }
 
   const saveImage= async()=>{
@@ -46,16 +100,69 @@ function GalleryScreen(props){
     }
   }
 
+  // The log entry w/ smallImage is saved to the SQLite db
+  const saveCatch= async()=>{
+    
+  }
+
+  const _renderItem = ({ item }) => {
+    const backgroundColor = item.class_id === selectedId ? "#6e3b6e" : "#f9c2ff";
+    const color = item.class_id === selectedId ? 'white' : 'black';
+
+    return (
+      <SpeciesButton
+        item={item}
+        onPress={() => setSelectedId(item.class_id)}
+        backgroundColor={{ backgroundColor }}
+        textColor={{ color }}
+      />
+    );
+  };
+
   return(
-    <View style={styles.container}>
-      <View style={{flex:0, flexDirection:'row', justifyContent:'space-between'}}>
-      <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
-      <Button title="Classify Image" onPress={()=>classifyImage()}/>
-      <Button title="Save Photo" onPress={() => saveImage()} />
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
+        <Button title="Save Catch" onPress={() => saveCatch()} />
       </View>
-      <Image style={{width:'100%', height:'100%'}} source={{uri:props.route.params.uri}} /> 
-      
-    </View>
+      <Image style={{ width: '100%', height: '100%' }, {flex: 1}} source={{ uri: props.route.params.uri }} />
+      {predictionReady && predictionResults && (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.logItem}>
+            <Text style={styles.logItemLabel}>Species</Text>
+            <TextInput
+              style={styles.logItemInput}
+              onChangeText={setSelectedId}
+              value={selectedId}
+            />
+          </View>
+          <FlatList
+            data={predictionResults}
+            renderItem={_renderItem}
+            keyExtractor={(item) => item.class_id}
+            extraData={selectedId}
+          />
+        </SafeAreaView>
+      )}
+      <ScrollView style={styles.container, {flex: 1, marginTop: 6}}>
+        <View style={styles.logItem}>
+          <Text style={styles.logItemLabel}>Date</Text>
+          <TextInput
+            style={styles.logItemInput}
+            onChangeText={setCurrentDate}
+            value={currentDate}
+          />
+        </View>
+        <View style={styles.logItem}>
+          <Text style={styles.logItemLabel}>Time</Text>
+          <TextInput
+            style={styles.logItemInput}
+            onChangeText={setCurrentTime}
+            value={currentTime}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -79,31 +186,29 @@ function ClassificationScreen(props){
 
   return(
     <View style={styles.container}>
-      <View style={{flex:0, flexDirection:'row', justifyContent:'space-between'}}>
-       <Button title="Go To Camera" onPress={() => props.navigation.replace('CameraDisplay')} />
-       <Button title="Save Photo" onPress={() => saveImage()} />
+      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Button title="Go To Camera" onPress={() => props.navigation.replace('CameraDisplay')} />
+        <Button title="Save Photo" onPress={() => saveImage()} />
       </View>
-      <Image style={{width:'100%', height:'50%'}} source={{uri:props.route.params.uri}}/>
-     <View style={{marginTop:30}}>
-       <DataTable>
-            <DataTable.Header >
-              <DataTable.Title>Name</DataTable.Title>
-              <DataTable.Title>Percentage</DataTable.Title>
-            </DataTable.Header>
+      <Image style={{ width: '100%', height: '50%' }} source={{ uri: props.route.params.uri }} />
+      <View style={{ marginTop: 30 }}>
+        <DataTable>
+          <DataTable.Header >
+            <DataTable.Title>Name</DataTable.Title>
+            <DataTable.Title>Percentage</DataTable.Title>
+          </DataTable.Header>
         </DataTable>
-     </View>
-      {fishNames.map((names,i)=>(
-          <View key={i} >
-           <DataTable>
+      </View>
+      {fishNames.map((names, i) => (
+        <View key={i} >
+          <DataTable>
             <DataTable.Row>
               <DataTable.Cell>{names.class_id}</DataTable.Cell>
               <DataTable.Cell>{names.percentage} %</DataTable.Cell>
-              </DataTable.Row>
-            </DataTable>
-          </View>
-      )
-      )
-      }
+            </DataTable.Row>
+          </DataTable>
+        </View>
+      ))}
     </View>
   )
 }
@@ -150,9 +255,10 @@ function CameraComponent(props)  {
       aspect: [1, 1],
       quality: 1,
     })
-    if(!result.cancelled){
-      props.navigation.replace('Gallery',{uri:result.uri});
+    if(result.cancelled === true){
+      return;
     }
+    props.navigation.replace('Gallery',{uri:result.uri});
   };
 
   if(hasCameraPermission === null || hasGalleryPermission ===null){
@@ -245,8 +351,32 @@ const styles = StyleSheet.create({
       padding: 10,
       width: 120,
     },
+    speciesButton: {
+      padding: 5,
+      height: 50,
+      marginVertical: 6,
+      marginHorizontal: 12,
+      alignSelf:'center',
+      flexDirection: 'row',
+    },
     text: {
       fontSize: 18,
       color: 'white',
+    },
+    logItem: {
+      height: 30,
+      marginVertical: 6,
+      marginHorizontal: 12,
+      flexDirection: 'row',
+    },
+    logItemLabel: {
+      flex: 1,
+      padding: 5,
+      alignSelf:'center',
+    },
+    logItemInput: {
+      flex: 1,
+      padding: 5,
+      alignSelf:'center',
     },
   });
