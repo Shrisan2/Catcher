@@ -14,7 +14,8 @@ var firebaseConfig = {
   storageBucket: "catcher-43065.appspot.com",
   messagingSenderId: "991074600752",
   appId: "1:991074600752:web:48982858116922f55d2af5",
-  measurementId: "G-51E20FKFL9"
+  measurementId: "G-51E20FKFL9",
+  databaseURL: "https://catcher-43065-default-rtdb.firebaseio.com/"
 }
 //Initializing Firebase
 if(!firebase.apps.length){
