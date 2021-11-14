@@ -7,17 +7,22 @@ import {
   SafeAreaView,
   ScrollView
 } from "react-native";
+import firebase from "firebase/app";
 
 //Importing Screens
 export default class Home extends React.Component {
+  state = {uri : "../assets/userimage.png", name : "", phone: ""}
   render() {
+    const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
+    const ref = firebase.storage().ref(pp);
+    ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{ alignSelf: "center" }}>
 
             <View style={styles.profileImage}>
-              <Image source={require("../assets/userimage.png")} style={styles.image}></Image>
+            <Image source={{uri: this.state.uri }} style={styles.image}></Image>
             </View>
 
             <View style={styles.statsContainer}>
