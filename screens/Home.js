@@ -11,20 +11,25 @@ import firebase from "firebase/app";
 
 //Importing Screens
 export default class Home extends React.Component {
-  state = {uri : "../assets/userimage.png", name : "", phone: ""}
-  render() {
+  state = {uri : "../assets/userimage.png", name : "", phone: "", url:""}
+
+  componentDidMount(){
     const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
     const ref = firebase.storage().ref(pp);
-    ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+    if(ref.getDownloadURL()!=null){
+      ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+    }
+  }
+
+  render() {
+  
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{ alignSelf: "center" }}>
-
             <View style={styles.profileImage}>
             <Image source={{uri: this.state.uri }} style={styles.image}></Image>
             </View>
-
             <View style={styles.statsContainer}>
               <View style={styles.statsBox}>
                 <Text>###</Text>

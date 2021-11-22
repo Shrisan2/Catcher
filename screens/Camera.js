@@ -223,8 +223,6 @@ function CameraComponent(props)  {
   const [capturedImage, setCapturedImage] = useState(null)
   const [flashMode, setFlashMode] = React.useState('off')
 
-
-
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestPermissionsAsync();
@@ -274,9 +272,8 @@ function CameraComponent(props)  {
   return (
    
     <View style={styles.container}>
-  
        <Camera style={styles.camera} ratio={'1:1'} whiteBalance={Camera.Constants.WhiteBalance.auto} autofocus= {Camera.Constants.AutoFocus.on} type={type} flashMode={flashMode} ref={ref => setCamera(ref)} />
-    
+
        <View style={{ flex:0, backgroundColor:'black',flexDirection:'row'}}>
         <View style={styles.buttonContainer}>    
             <TouchableOpacity style={styles.button} onPress={() => {

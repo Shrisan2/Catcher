@@ -5,7 +5,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import firebase from "firebase/app";
 import ProfilePic from "../components/ProfilePic"
 import UpdateForm from "../components/UpdateForm"
-import {RootStack} from "./Login"
 
 const Browser = ({ navigation, route }) => {
   return (
@@ -20,7 +19,6 @@ const Browser = ({ navigation, route }) => {
     </View>
   )
 }
-
 
 const Update = ({ navigation }) => {
   return (    
@@ -51,27 +49,39 @@ const Update = ({ navigation }) => {
   )
 }
 
-
-
-function handleSignOut(navigation) { 
-  firebase.auth().signOut()
-  Alert.alert("Message", "Signout Successful.")
-}
-
-
-class Account extends Component{ 
+class Account extends React.Component{ 
   state = {uri : "../assets/userimage.png", name : "", phone: ""}
+  _isMounted = false
+
+  onSignoutPress = () => {
+    this._isMounted=false
+    firebase.auth().signOut();
+    Alert.alert("Message", "Signout Successful.")
+  }
+
+  componentWillUnmount(){
+    this._isMounted = false
+  }
+
   componentDidMount(){
+    this._isMounted = true
+
+    if(this._isMounted){
     const userID = firebase.auth().currentUser.uid;
     const dbRef = firebase.app().database().ref('/'+userID)
+    
     dbRef.once('value').then(snapshot=>{
-      this.setState({name: snapshot.val().FullName, phone: snapshot.val().Phone})
+        this.setState({ phone: snapshot.val().Phone,name: snapshot.val().FullName})
     });
+ 
+    const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
+    let ref = firebase.storage().ref(pp);
+    if(ref.getDownloadURL()!=null){
+      ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+    }
+  }
   }
   render() {
-    const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
-    const ref = firebase.storage().ref(pp);
-    ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
   return (
       <View style={styles.buttonStyle}>
         <Text style={styles.textStyle}>{this.state.name} </Text>
@@ -99,7 +109,7 @@ class Account extends Component{
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => handleSignOut(this.props.navigation)}
+          onPress={this.onSignoutPress}
           style={styles.appButtonContainer}
         >
         <Text style={styles.appButtonText}>Sign Out</Text>
