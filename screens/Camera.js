@@ -92,8 +92,16 @@ function GalleryScreen(props){
     if(status === 'granted'){
       const {uri} = {uri:props.route.params.uri};
       const assert =await MediaLibrary.createAssetAsync(uri);
-      MediaLibrary.createAlbumAsync('CatcherImages', assert);
-      Alert.alert('Success',"Image has been saved");
+      const album = await MediaLibrary.getAlbumAsync('CatcherImages');
+      if (album === null){
+        MediaLibrary.createAlbumAsync('CatcherImages', assert)
+          .then(() => {
+            Alert.alert('Success',"Image has been saved");
+          });
+      } else {
+        let assertAdded = await MediaLibrary.addAssetsToAlbumAsync([assert], album, false);
+        if (!assertAdded) console.log("Asset add error!")
+      }
       props.navigation.replace('CameraDisplay');
     }else{
       Alert.alert("Error","Please go to settings and allow permission for camera.")
@@ -123,7 +131,7 @@ function GalleryScreen(props){
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
         <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
-        <Button title="Save Catch" onPress={() => saveCatch()} />
+        <Button title="Save Catch" onPress={() => {saveCatch(); saveImage();}} />
       </View>
       <Image style={{ width: '100%', height: '100%' }, {flex: 1}} source={{ uri: props.route.params.uri }} />
       {predictionReady && predictionResults && (
@@ -176,8 +184,16 @@ function ClassificationScreen(props){
     if(status === 'granted'){
       const {uri} = {uri:props.route.params.uri};
       const assert =await MediaLibrary.createAssetAsync(uri);
-      MediaLibrary.createAlbumAsync('CatcherImages', assert);
-      Alert.alert('Success',"Image has been saved");
+      const album = await MediaLibrary.getAlbumAsync('CatcherImages');
+      if (album === null){
+        MediaLibrary.createAlbumAsync('CatcherImages', assert)
+          .then(() => {
+            Alert.alert('Success',"Image has been saved");
+          });
+      } else {
+        let assertAdded = await MediaLibrary.addAssetsToAlbumAsync([assert], album, false);
+        if (!assertAdded) console.log("Asset add error!");
+      }
       props.navigation.replace('CameraDisplay');
     }else{
       Alert.alert("Error","Please go to settings and allow permission for camera.")
