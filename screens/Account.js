@@ -50,7 +50,7 @@ const Update = ({ navigation }) => {
 }
 
 class Account extends React.Component{ 
-  state = {uri : "../assets/userimage.png", name : "", phone: ""}
+  state = {uri : "../assets/userimage.png", name : "", phone: ""} // error because these are empty
   _isMounted = false
 
   onSignoutPress = () => {
@@ -72,7 +72,7 @@ class Account extends React.Component{
     
     dbRef.once('value').then(snapshot=>{
         this.setState({ phone: snapshot.val().Phone,name: snapshot.val().FullName})
-    });
+    }).catch(e=>{console.log(e)}); // error related to line 53 (null is not an object (evaluating 'snapshot.val().Phone')
  
     const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
     let ref = firebase.storage().ref(pp);
