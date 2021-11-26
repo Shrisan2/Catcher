@@ -23,9 +23,9 @@ export default class SignUp extends React.Component {
     dbRef.set({
       FullName: "",
       Phone: "",
-      caught: "",
-      catcherscore: "",
-      record: ""
+      caught: "0",
+      catcherscore: "0",
+      record: "0"
     }).then(() => {
     }).catch(e => console.log(e))
 
