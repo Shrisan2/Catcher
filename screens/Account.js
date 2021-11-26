@@ -49,6 +49,9 @@ const Update = ({ navigation }) => {
   )
 }
 
+
+
+
 class Account extends React.Component{ 
   state = {uri : "../assets/userimage.png", name : "", phone: ""} // error because these are empty
   _isMounted = false
@@ -63,29 +66,31 @@ class Account extends React.Component{
     this._isMounted = false
   }
 
+
   componentDidMount(){
     this._isMounted = true
 
     if(this._isMounted){
-    const userID = firebase.auth().currentUser.uid;
-    const dbRef = firebase.app().database().ref('/'+userID)
-    
-    dbRef.once('value').then(snapshot=>{
-        this.setState({ phone: snapshot.val().Phone,name: snapshot.val().FullName})
-    }).catch(e=>{console.log(e)}); // error related to line 53 (null is not an object (evaluating 'snapshot.val().Phone')
- 
-    const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
-    let ref = firebase.storage().ref(pp);
-    if(ref.getDownloadURL()!=null){
-      ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+      const userID = firebase.auth().currentUser.uid;
+      const dbRef = firebase.app().database().ref('/'+userID)
+      
+      dbRef.once('value').then(snapshot=>{
+          this.setState({ phone: snapshot.val().Phone,name: snapshot.val().FullName})
+      }).catch(e=>{console.log(e)}); // error related to line 53 (null is not an object (evaluating 'snapshot.val().Phone')
+  
+      const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
+      let ref = firebase.storage().ref(pp);
+      if(ref.getDownloadURL()!=null){
+        ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+      }
     }
-  }
+    
   }
   render() {
   return (
       <View style={styles.buttonStyle}>
         <Text style={styles.textStyle}>{this.state.name} </Text>
-        <Image source={{uri: this.state.uri }} style={styles.image}></Image>
+        <Image source={{uri: this.state.uri}} style={styles.image}></Image>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => this.props.navigation.navigate('Update')}

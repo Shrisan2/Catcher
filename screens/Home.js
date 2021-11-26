@@ -11,16 +11,26 @@ import firebase from "firebase/app";
 
 //Importing Screens
 export default class Home extends React.Component {
-  state = {uri : "../assets/userimage.png", name : "", phone: "", url:""}
-
+  state = {uri : "../assets/userimage.png", name : "", phone: "", url:"",}
+/*
   componentDidMount(){
-    const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
-    const ref = firebase.storage().ref(pp);
-    if(ref.getDownloadURL()!=null){
-      ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+    this._isMounted = true
+    if(this._isMounted){
+      const userID = firebase.auth().currentUser.uid;
+      const dbRef = firebase.app().database().ref('/'+userID)
+      
+      dbRef.once('value').then(snapshot=>{
+          this.setState({ phone: snapshot.val().Phone,name: snapshot.val().FullName})
+      }).catch(e=>{console.log(e)}); // error related to line 53 (null is not an object (evaluating 'snapshot.val().Phone')
+  
+      const pp = "/" + firebase.auth().currentUser.uid + "pp.jpg"
+      let ref = firebase.storage().ref(pp);
+      if(ref.getDownloadURL()!=null){
+        ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
+      }
     }
   }
-
+*/
   render() {
   
     return (
