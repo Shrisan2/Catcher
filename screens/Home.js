@@ -44,56 +44,66 @@ export default class Home extends React.Component {
     if(ref.getDownloadURL()!=null){
       ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
     }
-
-    const albumName = "CatcherImages";
-    const getPhotos = MediaLibrary.getAlbumAsync(albumName).catch(e => console.log(e));
-    if (getPhotos === null){
-      MediaLibrary.createAlbumAsync(albumName).catch(e => console.log(e));
-      console.log("album does not exist\ncreating new album");
-    } else {
-      const pictures = MediaLibrary.getAssetsAsync({album: getPhotos}).catch(e => console.log(e));
-      this.setState({data: pictures});
-    }
   }
+
+    async getImages() {
+      const {status} = await MediaLibrary.requestPermissionsAsync();
+      if(status === 'granted'){
+        console.log("getting images from catcherimages");
+        const albumName = "CatcherImages";
+        const getPhotos = MediaLibrary.getAlbumAsync(albumName).catch(e => console.log(e));
+        console.log(getPhotos);
+        if (getPhotos === null){
+          MediaLibrary.createAlbumAsync(albumName).catch(e => console.log(e));
+          console.log("album does not exist\ncreating new album");
+        } else {
+          console.log("getting assets");
+          const pictures = MediaLibrary.getAssetsAsync({first: 20, album: getPhotos}).catch(e => console.log(e));
+          console.log(pictures);
+          this.setState({data: pictures});
+        }
+      }else{
+        Alert.alert("Error","Please go to settings and allow permission for camera.")
+      }
+    }
 
   render() {
   
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={{ alignSelf: "center" }}>
-            <View style={styles.profileImage}>
-            <Image source={{uri: this.state.uri }} style={styles.image}></Image>
-            </View>
-            <View style={styles.statsContainer}>
-              <View style={styles.statsBox}>
-                <Text>{this.state.caught}</Text>
-                <Text style={styles.textSub}>Caught</Text>
-              </View>
-              <View style={styles.statsBox}>
-                <Text>{this.state.score}</Text>
-                <Text style={styles.textSub}>CatcherScore</Text>
-              </View>
-              <View style={styles.statsBox}>
-                <Text>{this.state.record}"</Text>
-                <Text style={styles.textSub}>Record</Text>
-              </View>
-            </View>
-            <FlatList data={this.state.data}
-              numColumns = {3}
-              keyExtractor={item => item.id}
-              nestedScrollEnabled
-              renderItem={({item}) => (
-                <View style={styles.item}>
-                  <Image 
-                    style={styles.flatimage}
-                    source={{uri:item.localUri}}
-                  />
-                </View>
-              )}
-            />
+        <View style={{ alignSelf: "center" }}>
+          <View style={styles.profileImage}>
+          <Image source={{uri: this.state.uri }} style={styles.image}></Image>
           </View>
-        </ScrollView>
+          <View style={styles.statsContainer}>
+            <View style={styles.statsBox}>
+              <Text>{this.state.caught}</Text>
+              <Text style={styles.textSub}>Caught</Text>
+            </View>
+            <View style={styles.statsBox}>
+              <Text>{this.state.score}</Text>
+              <Text style={styles.textSub}>CatcherScore</Text>
+            </View>
+            <View style={styles.statsBox}>
+              <Text>{this.state.record}"</Text>
+              <Text style={styles.textSub}>Record</Text>
+            </View>
+          </View>
+          <FlatList 
+            data={this.state.data}
+            numColumns = {3}
+            keyExtractor={item => item.id}
+            nestedScrollEnabled
+            renderItem={({item}) => (
+              <View style={styles.item}>
+                <Image 
+                  style={styles.flatimage}
+                  source={{uri:item.src}}
+                />
+              </View>
+            )}
+          />
+        </View>
       </SafeAreaView>
     );
   }
