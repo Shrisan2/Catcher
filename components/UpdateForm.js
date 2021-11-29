@@ -16,7 +16,7 @@ export default class UpdateForm extends React.Component {
         const userID = firebase.auth().currentUser.uid;
         const dbRef = firebase.app().database().ref('/'+userID)
         if (this.state.name && this.state.name.length > 0) {
-            dbRef.set({
+            dbRef.update({
             FullName: this.state.name,
             Phone: this.state.phone
             }).then(()=>{
