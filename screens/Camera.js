@@ -36,6 +36,24 @@ const SpeciesButton = ({ item, onPress, backgroundColor, textColor, speciesInfo 
   </TouchableOpacity>
 );
 
+// Checks if logInfo directory exists. If not, creates it
+async function ensureInfoDirExists() {
+  const dirInfo = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'LogInfo/');
+  if (!dirInfo.exists) {
+    console.log("Info directory doesn't exist, creating...");
+    await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'LogInfo/', { intermediates: true });
+  }
+}
+
+// Checks if logPhotos directory exists. If not, creates it
+async function ensurePhotosDirExists() {
+  const dirPhotos = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'LogPhotos/');
+  if (!dirPhotos.exists) {
+    console.log("Photos directory doesn't exist, creating...");
+    await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'LogPhotos/', { intermediates: true });
+  }
+}
+
 //Displaying the Image, species prediction, and log
 function GalleryScreen(props){
   const [predictionReady, setPredReady] = useState(false);
@@ -100,9 +118,31 @@ function GalleryScreen(props){
     }
   }
 
-  // The log entry w/ smallImage is saved to the SQLite db
+  // The log entry w/ smallImage is saved to expo file system
   const saveCatch = async () => {
-    
+    await ensureInfoDirExists();
+    await ensurePhotosDirExists();
+
+    var logInfo = {
+      "log_entry": {
+        "date": currentDate,
+        "species_id": selectedId,
+      }
+    }
+    logInfo = JSON.stringify(logInfo);
+    uri = smallImage.uri
+
+    fileName = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.')) + Date.now();
+
+    FileSystem.copyAsync({
+      from: smallImage.uri,
+      to: FileSystem.documentDirectory + 'LogPhotos/' + fileName + '.jpg'
+    });
+
+    FileSystem.writeAsStringAsync(
+      FileSystem.documentDirectory + 'LogInfo/' + fileName + '.txt',
+      logInfo
+    );
   }
 
   const _renderItem = ({ item }) => {
@@ -118,7 +158,7 @@ function GalleryScreen(props){
         speciesInfo={speciesData.species.find(({ id }) => id === item.class_id)}
       />
     );
-  };
+  }
 
   return(
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
