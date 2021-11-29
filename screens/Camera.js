@@ -22,10 +22,17 @@ import { createStackNavigator } from "@react-navigation/stack";
 //Importing ImageRecognition
 import ImageRecognition from './ImageRecognition';
 
-const SpeciesButton = ({ item, onPress, backgroundColor, textColor }) => (
-  <TouchableOpacity onPress={onPress} style={[styles.speciesButton, backgroundColor]}>
-    <Text style={[styles.logItemLabel, textColor]}>{item.class_id}</Text>
-    <Text style={[styles.logItemLabel, textColor]}>{item.percentage}%</Text>
+//Species data json
+const speciesData = require('../components/imagenet_class_index.json');
+
+//Images of fish to show in species selection
+import speciesImages from '../assets/species_images/index';
+
+const SpeciesButton = ({ item, onPress, backgroundColor, textColor, speciesInfo }) => (
+  <TouchableOpacity onPress={onPress} style={[styles.speciesButton, backgroundColor, { flexDirection: 'column' }]}>
+    <Image style={{width: null, height: 50, flex: 0}} resizeMode={'cover'} source={ speciesImages[item.class_id] } />
+    <Text style={[styles.speciesButtonLabel, textColor]} adjustsFontSizeToFit={true}>{speciesInfo.name}</Text>
+    <Text style={[styles.speciesButtonLabel, textColor]}>{item.percentage.toFixed(2)}%</Text>
   </TouchableOpacity>
 );
 
@@ -39,24 +46,10 @@ function GalleryScreen(props){
   const [selectedId, setSelectedId] = useState(null);
   const [otherSpeciesId, setOtherSpeciesId] = useState(null);
 
-  const [currentDate, setCurrentDate] = useState('');
-  const [currentTime, setCurrentTime] = useState('');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Initialize some things when opening this screen
   useEffect(() => {
-    var date = new Date().getDate(); //Current Date
-    var month = new Date().getMonth() + 1; //Current Month
-    var year = new Date().getFullYear(); //Current Year
-    var hours = new Date().getHours(); //Current Hours
-    var min = new Date().getMinutes(); //Current Minutes
-    var sec = new Date().getSeconds(); //Current Seconds
-    setCurrentDate(
-      date + '/' + month + '/' + year
-    );
-    setCurrentTime(
-      hours + ':' + min + ':' + sec
-    );
-
     // Resize a copy of image for prediction
     (async () => {
       const manipImage = await manipulateAsync(
@@ -74,26 +67,25 @@ function GalleryScreen(props){
       const fishNames = await ImageRecognition.getFishNames(uri);
       setPredReady(true);
       setPredictionResults(fishNames);
+      setSelectedId(fishNames[0].class_id)
     })();
   }, []);
 
   //Performing Image Classification
-  const classifyImage = async()=>{
+  const classifyImage = async () => {
     const {uri} = {uri:props.route.params.uri};
     const fishNames = await ImageRecognition.getFishNames(uri);
-    //redirecting to a different screen
-    //props.navigation.navigate('DisplayClassification',{uri:uri, names:fishNames})
   }
 
-  const saveImage= async()=>{
+  const saveImage = async () => {
     //checkDirectoryExists();
     const imageDir = FileSystem.cacheDirectory+'CatcherImages/';
     const {status} = await MediaLibrary.requestPermissionsAsync();
-    if(status === 'granted'){
+    if (status === 'granted') {
       const {uri} = {uri:props.route.params.uri};
       const assert =await MediaLibrary.createAssetAsync(uri);
       const album = await MediaLibrary.getAlbumAsync('CatcherImages');
-      if (album === null){
+      if (album === null) {
         MediaLibrary.createAlbumAsync('CatcherImages', assert)
           .then(() => {
             Alert.alert('Success',"Image has been saved");
@@ -103,13 +95,13 @@ function GalleryScreen(props){
         if (!assertAdded) console.log("Asset add error!")
       }
       props.navigation.replace('CameraDisplay');
-    }else{
+    } else{
       Alert.alert("Error","Please go to settings and allow permission for camera.")
     }
   }
 
   // The log entry w/ smallImage is saved to the SQLite db
-  const saveCatch= async()=>{
+  const saveCatch = async () => {
     
   }
 
@@ -123,109 +115,62 @@ function GalleryScreen(props){
         onPress={() => setSelectedId(item.class_id)}
         backgroundColor={{ backgroundColor }}
         textColor={{ color }}
+        speciesInfo={speciesData.species.find(({ id }) => id === item.class_id)}
       />
     );
   };
 
   return(
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
-        <Button title="Save Catch" onPress={() => {saveCatch(); saveImage();}} />
-      </View>
-      <Image style={{ width: '100%', height: '100%' }, {flex: 1}} source={{ uri: props.route.params.uri }} />
-      {predictionReady && predictionResults && (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.logItem}>
-            <Text style={styles.logItemLabel}>Species</Text>
-            <TextInput
-              style={styles.logItemInput}
-              onChangeText={setSelectedId}
-              value={selectedId}
-            />
+      <ScrollView style={styles.container}>
+        <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
+          <Button title="Save Catch" onPress={() => { saveCatch(); saveImage(); }} />
+        </View>
+        <Image
+          style={styles.catchImage}
+          resizeMode={'cover'}
+          source={{ uri: props.route.params.uri }}
+        />
+        {predictionReady && predictionResults && (
+          <View style={styles.container}>
+            <View style={styles.logItem}>
+              <Text style={styles.logItemLabel}>Species</Text>
+              <TextInput
+                style={styles.logItemInput}
+                onChangeText={setSelectedId}
+                value={selectedId}
+              />
+            </View>
+            <SafeAreaView style={styles.speciesButtonGroup}>
+              <FlatList
+                horizontal={true}
+                data={predictionResults}
+                renderItem={_renderItem}
+                keyExtractor={(item) => item.class_id}
+                extraData={selectedId}
+              />
+            </SafeAreaView>
           </View>
-          <FlatList
-            data={predictionResults}
-            renderItem={_renderItem}
-            keyExtractor={(item) => item.class_id}
-            extraData={selectedId}
-          />
-        </SafeAreaView>
-      )}
-      <ScrollView style={styles.container, {flex: 1, marginTop: 6}}>
+        )}
         <View style={styles.logItem}>
           <Text style={styles.logItemLabel}>Date</Text>
           <TextInput
             style={styles.logItemInput}
             onChangeText={setCurrentDate}
-            value={currentDate}
+            value={currentDate.toLocaleDateString("en-US")}
           />
         </View>
         <View style={styles.logItem}>
           <Text style={styles.logItemLabel}>Time</Text>
           <TextInput
             style={styles.logItemInput}
-            onChangeText={setCurrentTime}
-            value={currentTime}
+            onChangeText={setCurrentDate}
+            value={currentDate.toLocaleTimeString("en-US")}
           />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
-}
-
-function ClassificationScreen(props){
-  const fishNames = props.route.params.names;
-
-  const saveImage= async()=>{
-    //checkDirectoryExists();
-    const imageDir = FileSystem.cacheDirectory+'CatcherImages/';
-    const {status} = await MediaLibrary.requestPermissionsAsync();
-    if(status === 'granted'){
-      const {uri} = {uri:props.route.params.uri};
-      const assert =await MediaLibrary.createAssetAsync(uri);
-      const album = await MediaLibrary.getAlbumAsync('CatcherImages');
-      if (album === null){
-        MediaLibrary.createAlbumAsync('CatcherImages', assert)
-          .then(() => {
-            Alert.alert('Success',"Image has been saved");
-          });
-      } else {
-        let assertAdded = await MediaLibrary.addAssetsToAlbumAsync([assert], album, false);
-        if (!assertAdded) console.log("Asset add error!");
-      }
-      props.navigation.replace('CameraDisplay');
-    }else{
-      Alert.alert("Error","Please go to settings and allow permission for camera.")
-    }
-  }
-
-  return(
-    <View style={styles.container}>
-      <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Button title="Go To Camera" onPress={() => props.navigation.replace('CameraDisplay')} />
-        <Button title="Save Photo" onPress={() => saveImage()} />
-      </View>
-      <Image style={{ width: '100%', height: '50%' }} source={{ uri: props.route.params.uri }} />
-      <View style={{ marginTop: 30 }}>
-        <DataTable>
-          <DataTable.Header >
-            <DataTable.Title>Name</DataTable.Title>
-            <DataTable.Title>Percentage</DataTable.Title>
-          </DataTable.Header>
-        </DataTable>
-      </View>
-      {fishNames.map((names, i) => (
-        <View key={i} >
-          <DataTable>
-            <DataTable.Row>
-              <DataTable.Cell>{names.class_id}</DataTable.Cell>
-              <DataTable.Cell>{names.percentage} %</DataTable.Cell>
-            </DataTable.Row>
-          </DataTable>
-        </View>
-      ))}
-    </View>
   )
 }
 
@@ -257,7 +202,7 @@ function CameraComponent(props)  {
       setPreviewVisible(true);
       setCapturedImage(photo);
       props.navigation.navigate('Gallery',{uri:photo.uri})
-    }else if (!camera){
+    } else if (!camera){
       Alert.alert("Error", "Camera Failed To Start");
     }
   }
@@ -269,13 +214,13 @@ function CameraComponent(props)  {
       aspect: [1, 1],
       quality: 1,
     })
-    if(result.cancelled === true){
+    if (result.cancelled === true) {
       return;
     }
     props.navigation.replace('Gallery',{uri:result.uri});
   };
 
-  if(hasCameraPermission === null || hasGalleryPermission ===null){
+  if (hasCameraPermission === null || hasGalleryPermission ===null){
     return <View/>
   }
   if (hasCameraPermission === false || hasGalleryPermission === false) {
@@ -286,46 +231,43 @@ function CameraComponent(props)  {
   }
 
   return (
-   
     <View style={styles.container}>
-       <Camera style={styles.camera} ratio={'1:1'} whiteBalance={Camera.Constants.WhiteBalance.auto} autofocus= {Camera.Constants.AutoFocus.on} type={type} flashMode={flashMode} ref={ref => setCamera(ref)} />
-
-       <View style={{ flex:0, backgroundColor:'black',flexDirection:'row'}}>
-        <View style={styles.buttonContainer}>    
-            <TouchableOpacity style={styles.button} onPress={() => {
+      <Camera style={styles.camera} ratio={'1:1'} whiteBalance={Camera.Constants.WhiteBalance.auto} autofocus={Camera.Constants.AutoFocus.on} type={type} flashMode={flashMode} ref={ref => setCamera(ref)} />
+      <View style={{ flex: 0, backgroundColor: 'black', flexDirection: 'row' }}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={() => {
             setType(
               type === Camera.Constants.Type.back
                 ? Camera.Constants.Type.front
                 : Camera.Constants.Type.back
-                );
-              }}>
-                <Ionicons name="camera-reverse" size={35} color='grey' />
-              </TouchableOpacity>
+            );
+          }}>
+            <Ionicons name="camera-reverse" size={35} color='grey' />
+          </TouchableOpacity>
 
-              <TouchableOpacity style={styles.button} onPress={()=>takePicture()}>
-                <FontAwesome name="circle" size={50} color='white' />
-              </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => takePicture()}>
+            <FontAwesome name="circle" size={50} color='white' />
+          </TouchableOpacity>
 
-              <TouchableOpacity style={styles.button} onPress={()=> pickImage()}>
-                <MaterialCommunityIcons name="image" size={35} color="grey" />
-              </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => pickImage()}>
+            <MaterialCommunityIcons name="image" size={35} color="grey" />
+          </TouchableOpacity>
 
-              <TouchableOpacity style={{alignSelf: 'center', 
-              backgroundColor: 'transparent'}} onPress={() => {
-                setFlashMode(
-                flashMode === Camera.Constants.FlashMode.off
-                  ? Camera.Constants.FlashMode.torch
-                  : Camera.Constants.FlashMode.off
-                  );
-                }}>
-                <Ionicons name="flash" size={24} color="gold"  /> 
-              </TouchableOpacity>
-            </View>
-       
-       </View>
-
+          <TouchableOpacity style={{
+            alignSelf: 'center',
+            backgroundColor: 'transparent'
+          }} onPress={() => {
+            setFlashMode(
+              flashMode === Camera.Constants.FlashMode.off
+                ? Camera.Constants.FlashMode.torch
+                : Camera.Constants.FlashMode.off
+            );
+          }}>
+            <Ionicons name="flash" size={24} color="gold" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
-              
   );
 }
 
@@ -333,63 +275,79 @@ function CameraComponent(props)  {
 const Stack = createStackNavigator();
 
 export default function App(){
-  return(
-      <Stack.Navigator screenOptions={{headerShown:false}}>
-        <Stack.Screen name="CameraDisplay" component={CameraComponent} />
-        <Stack.Screen  name="Gallery" component={GalleryScreen} />
-        <Stack.Screen name="DisplayClassification" component={ClassificationScreen}  />
-      </Stack.Navigator>
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="CameraDisplay" component={CameraComponent} />
+      <Stack.Screen name="Gallery" component={GalleryScreen} />
+    </Stack.Navigator>
   )
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    camera: {
-      flex: 1,
-    },
-    buttonContainer: {
-      flex: 1,
-      backgroundColor: 'transparent',
-      flexDirection: 'row',
-      margin: 20,
-      justifyContent:'space-between'
-    },
-    button: {
-      flex: 0.15,
-      alignSelf: 'flex-end',
-      alignItems:'center',
-      backgroundColor: 'transparent',
-      padding: 10,
-      width: 120,
-    },
-    speciesButton: {
-      padding: 5,
-      height: 50,
-      marginVertical: 6,
-      marginHorizontal: 12,
-      alignSelf:'center',
-      flexDirection: 'row',
-    },
-    text: {
-      fontSize: 18,
-      color: 'white',
-    },
-    logItem: {
-      height: 30,
-      marginVertical: 6,
-      marginHorizontal: 12,
-      flexDirection: 'row',
-    },
-    logItemLabel: {
-      flex: 1,
-      padding: 5,
-      alignSelf:'center',
-    },
-    logItemInput: {
-      flex: 1,
-      padding: 5,
-      alignSelf:'center',
-    },
-  });
+  container: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    margin: 20,
+    justifyContent: 'space-between'
+  },
+  button: {
+    flex: 0.15,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    padding: 10,
+    width: 120,
+  },
+  speciesButtonGroup: {
+    marginBottom: 6,
+    marginHorizontal: 6,
+    alignSelf: 'center',
+    flexDirection: 'row',
+  },
+  speciesButton: {
+    padding: 5,
+    width: 120,
+    height: 100,
+    marginHorizontal: 6,
+    alignSelf: 'center',
+    flexDirection: 'row',
+  },
+  speciesButtonLabel: {
+    flex: 1,
+    marginTop: 4,
+    alignSelf: 'center',
+  },
+  text: {
+    fontSize: 18,
+    color: 'white',
+  },
+  logItem: {
+    height: 30,
+    marginVertical: 6,
+    marginHorizontal: 12,
+    flexDirection: 'row',
+  },
+  logItemLabel: {
+    flex: 1,
+    padding: 5,
+    alignSelf: 'center',
+  },
+  logItemInput: {
+    flex: 1,
+    padding: 5,
+    alignSelf: 'center',
+  },
+  catchImage: {
+    width: null,
+    height: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
