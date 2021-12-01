@@ -5,133 +5,133 @@
       "name": "Black Bullhead",
       "binomial_name": "Ameiurus melas",
       "img": "../assets/species_images/black_bullhead.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "black_crappie",
       "name": "Black Crappie",
       "binomial_name": "Pomoxis nigromaculatus",
       "img": "../assets/species_images/black_crappie.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "blue_catfish",
       "name": "Blue Catfish",
       "binomial_name": "Ictalurus furcatus",
       "img": "../assets/species_images/blue_catfish.jpg",
-      "points": 5
+      "points": 20
     },
     {
       "id": "bluegill",
       "name": "Bluegill",
       "binomial_name": "Lepomis macrochirus",
       "img": "../assets/species_images/bluegill.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "channel_catfish",
       "name": "Channel Catfish",
       "binomial_name": "Ictalurus punctatus",
       "img": "../assets/species_images/channel_catfish.jpg",
-      "points": 5
+      "points": 15
     },
     {
       "id": "common_carp",
       "name": "Common Carp",
       "binomial_name": "Cyprinus carpio",
       "img": "../assets/species_images/common_carp.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "freshwater_drum",
       "name": "Freshwater Drum",
       "binomial_name": "Aplodinotus grunniens",
       "img": "../assets/species_images/freshwater_drum.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "lake_trout",
       "name": "Lake Trout",
       "binomial_name": "Salvelinus namaycush",
       "img": "../assets/species_images/lake_trout.jpg",
-      "points": 5
+      "points": 15
     },
     {
       "id": "largemouth_bass",
       "name": "Largemouth Bass",
       "binomial_name": "Micropterus salmoides",
       "img": "../assets/species_images/largemouth_bass.jpg",
-      "points": 5
+      "points": 20
     },
     {
       "id": "northern_pike",
       "name": "Northern Pike",
       "binomial_name": "Esox lucius",
       "img": "../assets/species_images/northern_pike.jpg",
-      "points": 5
+      "points": 15
     },
     {
       "id": "rainbow_trout",
       "name": "Rainbow Trout",
       "binomial_name": "Oncorhynchus mykiss",
       "img": "../assets/species_images/rainbow_trout.jpg",
-      "points": 5
+      "points": 20
     },
     {
       "id": "rock_bass",
       "name": "Rock Bass",
       "binomial_name": "Ambloplites rupestris",
       "img": "../assets/species_images/rock_bass.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "smallmouth_bass",
       "name": "Smallmouth Bass",
       "binomial_name": "Micropterus dolomieu",
       "img": "../assets/species_images/smallmouth_bass.jpg",
-      "points": 5
+      "points": 20
     },
     {
       "id": "spotted_bass",
       "name": "Spotted Bass",
       "binomial_name": "Micropterus punctulatus",
       "img": "../assets/species_images/spotted_bass.jpg",
-      "points": 5
+      "points": 20
     },
     {
       "id": "striped_bass",
       "name": "Striped Bass",
       "binomial_name": "Morone saxatilis",
       "img": "../assets/species_images/striped_bass.jpg",
-      "points": 5
+      "points": 15
     },
     {
       "id": "walleye",
       "name": "Walleye",
       "binomial_name": "Sander vitreus",
       "img": "../assets/species_images/walleye.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "white_bass",
       "name": "White Bass",
       "binomial_name": "Morone chrysops",
       "img": "../assets/species_images/white_bass.jpg",
-      "points": 5
+      "points": 15
     },
     {
       "id": "white_crappie",
       "name": "White Crappie",
       "binomial_name": "Pomoxis annularis",
       "img": "../assets/species_images/white_crappie.jpg",
-      "points": 5
+      "points": 10
     },
     {
       "id": "yellow_perch",
       "name": "Yellow Perch",
       "binomial_name": "Perca flavescens",
       "img": "../assets/species_images/yellow_perch.jpg",
-      "points": 5
+      "points": 10
     }
   ]
 }
