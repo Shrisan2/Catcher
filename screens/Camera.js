@@ -71,7 +71,7 @@ function GalleryScreen(props){
   
   const [selectedId, setSelectedId] = useState(null);
   const [otherSpeciesId, setOtherSpeciesId] = useState(null);
-
+  const [fishLength, setfishLength] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Initialize some things when opening this screen
@@ -140,17 +140,17 @@ function GalleryScreen(props){
     logInfo = JSON.stringify(logInfo);
     uri = smallImage.uri
 
-    fileName = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.')) + Date.now();
+    let fileName = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.')) + Date.now();
 
     FileSystem.copyAsync({
       from: smallImage.uri,
       to: FileSystem.documentDirectory + 'LogPhotos/' + fileName + '.jpg'
-    });
+    }).catch(e => console.log(e));
 
     FileSystem.writeAsStringAsync(
       FileSystem.documentDirectory + 'LogInfo/' + fileName + '.txt',
       logInfo
-    );
+    ).catch(e => console.log(e));
   }
 
   const updateInfo = async () => {
@@ -170,14 +170,19 @@ function GalleryScreen(props){
     let newcaught = parseInt(caught);
     newcaught += 1;
 
-
     let temp = await getPoints(selectedId);
     let newcatcherscore = parseInt(catcherscore)
     newcatcherscore += temp[0].points;
 
+    let newlength = parseInt(record);
+    if (fishLength > newlength){
+      newlength = fishLength;
+    }
+
     dbRef.update({
     caught: newcaught,
     catcherscore: newcatcherscore,
+    record: newlength
     }).catch(e => console.log(e));
   }
 
@@ -243,6 +248,17 @@ function GalleryScreen(props){
             style={styles.logItemInput}
             onChangeText={setCurrentDate}
             value={currentDate.toLocaleTimeString("en-US")}
+          />
+        </View>
+        <View style={styles.logItem}>
+          <Text style={styles.logItemLabel}>Length(inches)</Text>
+          <TextInput
+            style={styles.logItemInput}
+            placeholder="0.0"
+            maxLength={10}
+            keyboardType='numeric'
+            onChangeText={setfishLength}
+            value={fishLength}
           />
         </View>
       </ScrollView>
