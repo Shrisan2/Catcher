@@ -5,7 +5,7 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
+  Button,
   FlatList
 } from "react-native";
 import firebase from "firebase/app";
@@ -29,7 +29,7 @@ const LogEntry = ({ info, imageUri }) => (
 async function ensureInfoDirExists() {
   const dirInfo = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'LogInfo/');
   if (!dirInfo.exists) {
-    console.log("Info directory doesn't exist, creating...");
+    //console.log("Info directory doesn't exist, creating...");
     await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'LogInfo/', { intermediates: true });
   }
 }
@@ -38,7 +38,7 @@ async function ensureInfoDirExists() {
 async function ensurePhotosDirExists() {
   const dirPhotos = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'LogPhotos/');
   if (!dirPhotos.exists) {
-    console.log("Photos directory doesn't exist, creating...");
+    //console.log("Photos directory doesn't exist, creating...");
     await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'LogPhotos/', { intermediates: true });
   }
 }
@@ -69,8 +69,8 @@ getLogPair = async(imageFileName) => {
 
 // Log entry files are read here when they are rendered
 const _renderItem = ({ item }) => {
-  console.log(item.info.log_entry.species_id);
-  console.log(speciesData.species.find(({ id }) => id === item.info.log_entry.species_id));
+  //console.log(item.info.log_entry.species_id);
+  //console.log(speciesData.species.find(({ id }) => id === item.info.log_entry.species_id));
   return (
     <LogEntry
       info={item.info}
@@ -83,6 +83,7 @@ const _renderItem = ({ item }) => {
 export default class Home extends React.Component {
   constructor(props){
     super(props);
+    this.forceUpdateHandler = this.forceUpdateHandler.bind(this);
     this.state = {
       data:[],
       uri: "../assets/userimage.png",
@@ -92,9 +93,16 @@ export default class Home extends React.Component {
       caught: "",
       score: "",
       record: "",
-      imageInfoPairs:[]
+      imageInfoPairs:[],
+      
     };
   }
+
+  forceUpdateHandler(){
+    this.forceUpdate();
+    this.componentDidMount();
+    this.getImages();
+  };
 
   async componentDidMount(){
     // Retrieve stats from firebase
@@ -115,22 +123,22 @@ export default class Home extends React.Component {
       ref.getDownloadURL().then(url => {this.setState({uri: url})}).catch(e=>{console.log(e)});
     }
 
-    console.log('a');
+    //console.log('a');
     // Read document directory for existing logs
     await ensureInfoDirExists();
     await ensurePhotosDirExists();
 
-    console.log('b');
+    //console.log('b');
     const imgs = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'LogPhotos/');
 
-    console.log('c');
+    //console.log('c');
     var arr = []
     for (let img of imgs) {
       let obj = await getLogPair(img);
       arr.push(obj);
     }
-    console.log('d');
-    console.log(arr);
+    //console.log('d');
+    //console.log(arr);
     this.setState({imageInfoPairs: arr});
   }
 
@@ -140,14 +148,14 @@ export default class Home extends React.Component {
       console.log("getting images from catcherimages");
       const albumName = "CatcherImages";
       const getPhotos = MediaLibrary.getAlbumAsync(albumName).catch(e => console.log(e));
-      console.log(getPhotos);
+      //console.log(getPhotos);
       if (getPhotos === null){
         MediaLibrary.createAlbumAsync(albumName).catch(e => console.log(e));
         console.log("album does not exist\ncreating new album");
       } else {
         console.log("getting assets");
         const pictures = MediaLibrary.getAssetsAsync({first: 20, album: getPhotos}).catch(e => console.log(e));
-        console.log(pictures);
+        //console.log(pictures);
         this.setState({data: pictures});
       }
     }else{
@@ -159,6 +167,9 @@ export default class Home extends React.Component {
   
     return (
       <SafeAreaView style={styles.container}>
+        <View style={{alignSelf: "flex-end"}}>
+          <Button title="Refresh" onPress={this.forceUpdateHandler}/>
+        </View>
         <View style={{ alignSelf: "center" }}>
           <View style={styles.profileImage}>
           <Image source={{uri: this.state.uri }} style={styles.image}></Image>
