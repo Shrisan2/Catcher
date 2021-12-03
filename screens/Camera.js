@@ -54,6 +54,14 @@ async function ensurePhotosDirExists() {
   }
 }
 
+function getPoints(id) {
+  return speciesData.species.filter(
+    function(speciesData) {
+      return speciesData.id == id
+    }
+  )
+}
+
 //Displaying the Image, species prediction, and log
 function GalleryScreen(props){
   const [predictionReady, setPredReady] = useState(false);
@@ -145,6 +153,34 @@ function GalleryScreen(props){
     );
   }
 
+  const updateInfo = async () => {
+    let caught = "";
+    let catcherscore = "";
+    let record = "";
+
+    const userID = firebase.auth().currentUser.uid;
+    const dbRef = firebase.app().database().ref('/'+userID);
+  
+    await dbRef.once('value').then(snapshot=>{
+      caught = snapshot.val().caught;
+      catcherscore = snapshot.val().catcherscore;
+      record = snapshot.val().record;
+    }).catch(e => console.log(e));
+
+    let newcaught = parseInt(caught);
+    newcaught += 1;
+
+
+    let temp = await getPoints(selectedId);
+    let newcatcherscore = parseInt(catcherscore)
+    newcatcherscore += temp[0].points;
+
+    dbRef.update({
+    caught: newcaught,
+    catcherscore: newcatcherscore,
+    }).catch(e => console.log(e));
+  }
+
   const _renderItem = ({ item }) => {
     const backgroundColor = item.class_id === selectedId ? "#6e3b6e" : "#f9c2ff";
     const color = item.class_id === selectedId ? 'white' : 'black';
@@ -165,7 +201,7 @@ function GalleryScreen(props){
       <ScrollView style={styles.container}>
         <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Button title="Go back" onPress={() => props.navigation.replace('CameraDisplay')} />
-          <Button title="Save Catch" onPress={() => { saveCatch(); saveImage(); }} />
+          <Button title="Save Catch" onPress={() => { saveCatch(); saveImage(); updateInfo();}} />
         </View>
         <Image
           style={styles.catchImage}
